@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kitty Data Collector</title>
+    <style>
+        body {
+            background-image:url("2.jpg");
+            color: #ff7898;
+            text-shadow: 5px 5px 10px rgb(255, 255, 255);
+            font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        #gameArea {
+            width: 550px;
+            height: 580px;
+            background-image:url("1.jpg");
+            border: 3px solid #ffffff;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        #player {
+            width: 40px;
+            height: 40px;
+            background: #fc82a8;
+            position: absolute;
+            bottom: 25px;
+            left: 220px;
+            border-radius: 6px;
+            transition: 0.15s ease;
+            box-shadow: 0 0 12px #ffffff;
+        }
+        .dataChip {
+            width: 26px;
+            height: 26px;
+            background: #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 10px #ff0762;
+        }
+        #ui {
+            width: 550px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 22px;
+        }
+        #level {
+            color: rgb(245, 29, 10);
+            font-weight: bold;
+        }
+        #gameOver {
+            position: absolute;
+            top: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            color: #ff7199;
+            font-weight: bold;
+            display: none;
+            text-shadow: 0 0 10px rgb(255, 255, 255);
+            z-index: 10;
+        }
+        #restartBtn {
+            position: absolute;
+            top: 300px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 25px;
+            font-size: 20px;
+            background: #ff7898;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: none;
+            z-index: 20;
+        }
+        #welcome {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: #ff5a8c;
+            font-weight: normal;
+            text-align: center;
+            background: white;
+            padding: 15px 60px;
+            border-radius: 8px;
+            border: 3px solid #f8b0d6;
+            box-shadow: 0 0 10px #ffc0d0;
+            z-index: 999;
+        }
+        .statement {
+            width: 550px;
+            text-align: center;
+            font-size: 16px;
+            color: #222;
+            background: rgba(255,255,255,0.9);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .howto {
+            width: 550px;
+            text-align: center;
+            font-size: 16px;
+            color: #222;
+            background: rgba(255,255,255,0.9);
+            padding: 8px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kitty Data Collector♥</h1>
+
+    <div class="statement">
+        Artist Statement♥:
+        <br>
+        My creation is inspired by the classic game Piano Tiles. Players can train their reaction skills through simple left-and-right controls. The game is easy to start with, yet its difficulty increases gradually as you play. Collecting all items with quick responses brings a strong sense of achievement, and it also helps people relax and relieve stress.
+        <br><br>
+        I developed this game with the help of AI code assistance. I used AI to generate the basic game structure, then modified and adjusted the CSS styles in VS Code to create my own lovely Kitty theme. I also added personalized background music and sound effects to make the game more unique and complete.
+    </div>
+
+    <div class="howto">
+        🎮 How to Play: Use ← → arrow keys to move Kitty | Collect all data chips | Don't let them fall!
+    </div>
+
+    <div id="ui">
+        <div>Data Collected😊: <span id="score">0</span></div>
+        <div>Kitty Level🐱: <span id="level">1</span></div>
+    </div>
+
+    <div id="gameArea">
+        <div id="player"></div>
+        <div id="gameOver">DATA LOSS - GAME OVER</div>
+        <button id="restartBtn">Play Again</button>
+        <div id="welcome">Hi♥ Welcome to Kitty's Relaxing Game World!</div>
+    </div>
+
+    <audio id="bgm" loop>
+        <source src="Half-Light Confessions.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="collectSound">
+        <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_12e2be1d62.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let player = document.getElementById("player");
+        let gameArea = document.getElementById("gameArea");
+        let scoreDisplay = document.getElementById("score");
+        let levelDisplay = document.getElementById("level");
+        let gameOverScreen = document.getElementById("gameOver");
+        let welcome = document.getElementById("welcome");
+        let bgm = document.getElementById("bgm");
+        let collectSound = document.getElementById("collectSound");
+        let restartBtn = document.getElementById("restartBtn");
+
+        let score = 0;
+        let level = 1;
+        let fallSpeed = 3;
+        let gameActive = true;
+
+        document.addEventListener("click", function() {
+            bgm.volume = 0.4;
+            bgm.play();
+        }, { once: true });
+
+        setTimeout(() => {
+            welcome.style.display = "none";
+        }, 3000);
+
+        document.addEventListener("keydown", (e) => {
+            if (!gameActive) return;
+            let currentX = parseInt(player.style.left || 220);
+            if (e.key === "ArrowLeft" && currentX > 0) {
+                player.style.left = currentX - 28 + "px";
+            }
+            if (e.key === "ArrowRight" && currentX < 440) {
+                player.style.left = currentX + 28 + "px";
+            }
+        });
+
+        function spawnData() {
+            if (!gameActive) return;
+            let data = document.createElement("div");
+            data.classList.add("dataChip");
+            data.style.left = Math.random() * 450 + "px";
+            data.style.top = "0px";
+            gameArea.appendChild(data);
+            dropData(data);
+        }
+
+        function dropData(data) {
+            let yPos = 0;
+            let loop = setInterval(() => {
+                if (!gameActive) {
+                    clearInterval(loop);
+                    return;
+                }
+                yPos += fallSpeed;
+                data.style.top = yPos + "px";
+
+                let p = player.getBoundingClientRect();
+                let d = data.getBoundingClientRect();
+                if (d.bottom > p.top && d.top < p.bottom && d.right > p.left && d.left < p.right) {
+                    collectSound.currentTime = 0;
+                    collectSound.volume = 0.5;
+                    collectSound.play();
+                    
+                    score++;
+                    scoreDisplay.innerText = score;
+                    data.remove();
+                    clearInterval(loop);
+                    checkUpgrade();
+                    increaseDifficulty();
+                }
+
+                if (yPos > 520) {
+                    clearInterval(loop);
+                    data.remove();
+                    gameOver();
+                }
+            }, 20);
+        }
+
+        function checkUpgrade() {
+            if (score === 20) {
+                level = 2;
+                player.style.background = "#ff55ff";
+                player.style.boxShadow = "0 0 14px #ff55ff";
+            }
+            if (score === 40) {
+                level = 3;
+                player.style.width = "50px";
+                player.style.height = "50px";
+            }
+            if (score === 70) {
+                level = 4;
+                player.style.background = "#ffaa00";
+                player.style.boxShadow = "0 0 20px #ffaa00";
+            }
+            levelDisplay.innerText = level;
+        }
+
+        function increaseDifficulty() {
+            if (score % 12 === 0) {
+                fallSpeed += 0.25;
+            }
+        }
+
+        function gameOver() {
+            gameActive = false;
+            gameOverScreen.style.display = "block";
+            restartBtn.style.display = "block";
+        }
+
+        restartBtn.addEventListener("click", function() {
+            score = 0;
+            level = 1;
+            fallSpeed = 3;
+            gameActive = true;
+            
+            scoreDisplay.innerText = 0;
+            levelDisplay.innerText = 1;
+            gameOverScreen.style.display = "none";
+            restartBtn.style.display = "none";
+            player.style.cssText = "width:40px;height:40px;background:#fc82a8;box-shadow:0 0 12px #fff;position:absolute;bottom:25px;left:220px;border-radius:6px;transition:0.15s ease";
+            
+            let chips = document.querySelectorAll(".dataChip");
+            chips.forEach(c => c.remove());
+        });
+
+        setInterval(spawnData, 850);
+    </script>
+</body>
+</html>
